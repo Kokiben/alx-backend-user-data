@@ -71,14 +71,25 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
 def main() -> None:
     """ Main function that retrieves and prints user data from database.
     """
+    logger = get_logger()
     datab = get_db()
     db_cursor = datab.cursor()
     db_cursor.execute("SELECT * FROM users;")
+
     for us_rw in db_cursor:
-        message = f"name={us_rw[0]}; email={us_rw[1]}; phone={us_rw[2]}; " +\
-            f"ssn={us_rw[3]}; password={us_rw[4]};ip={us_rw[5]}; " +\
-            f"last_login={us_rw[6]}; user_agent={us_rw[7]};"
-        print(message)
+        us_dict = {
+            "name": us_rw[0],
+            "email": us_rw[1],
+            "phone": us_rw[2],
+            "ssn": us_rw[3],
+            "password": us_rw[4],
+            "ip": us_rw[5],
+            "last_login": us_rw[6],
+            "user_agent": us_rw[7]
+        }
+        message = "; ".join(f"{key}={value}" for key, value in us_dict.items())
+        logger.info(message)
+
     db_cursor.close()
     datab.close()
 
