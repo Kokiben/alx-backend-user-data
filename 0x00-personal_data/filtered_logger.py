@@ -25,6 +25,7 @@ def filter_datum(fields: List[str], redaction: str, message: str,
         message
     )
 
+
 def main():
     message = "name=John Doe;email=john.doe@example.com;phone=123-456-7890"
     fields = ["name", "email", "phone"]
