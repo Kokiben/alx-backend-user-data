@@ -10,7 +10,7 @@ from typing import List
 import mysql.connector
 
 
-REDACTED_FIELDS = ('name', 'email', 'phone', 'ssn', 'password')
+PII_FIELDS = ('name', 'email', 'phone', 'ssn', 'password')
 
 
 def filter_datum(fields: List[str], redaction: str, message: str,
@@ -35,7 +35,7 @@ class RedactingFormatter(logging.Formatter):
         super(RedactingFormatter, self).__init__(self.FORMAT)
 
     def format(self, record: logging.LogRecord) -> str:
-        """ Initializes RedactingFormatter with specif REDACTED FIELDS. """
+        """ Initializes RedactingFormatter with specif FIELDS. """
         return filter_datum(self.fields, self.REDACTION,
                             super().format(record), self.SEPARATOR)
 
@@ -48,7 +48,7 @@ def get_logger() -> logging.Logger:
     user_logger.setLevel(logging.INFO)
     user_logger.propagate = False
     user_handler = logging.StreamHandler()
-    user_handler.setFormatter(RedactingFormatter(REDACTED_FIELDS))
+    user_handler.setFormatter(RedactingFormatter(PII_FIELDS))
     user_logger.addHandler(user_handler)
     return user_logger
 
