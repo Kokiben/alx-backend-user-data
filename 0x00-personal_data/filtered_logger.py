@@ -33,5 +33,5 @@ def main():
     print(redacted_message)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
