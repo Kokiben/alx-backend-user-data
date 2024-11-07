@@ -11,13 +11,11 @@ def filter_datum(fields: List[str], redaction: str, message: str,
                  separator: str) -> str:
     """
     Redacts specified fields in a log message.
-
     Parameters:
     - fields: List of strings with field names to redact.
     - redaction: The string to replace sensitive information with.
     - message: The log message containing sensitive information.
     - separator: The character separating fields in the message.
-
     Returns:
     A new message with specified fields redacted.
     """
@@ -26,7 +24,6 @@ def filter_datum(fields: List[str], redaction: str, message: str,
         lambda match: f"{match.group(1)}={redaction}",
         message
     )
-
 
 def main():
     message = "name=John Doe;email=john.doe@example.com;phone=123-456-7890"
