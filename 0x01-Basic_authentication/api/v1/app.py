@@ -25,7 +25,7 @@ elif getenv("AUTH_TYPE") == "basic_auth":
 
 @app.errorhandler(404)
 def handle_not_found(error) -> str:
-    """ 
+    """
     Handle 404 errors (Not Found).
     """
     return jsonify({"error": "Not found"}), 404
@@ -52,9 +52,18 @@ def pre_request_handler():
     """
     Handle actions before processing the request.
     """
-    public_routes = ['/api/v1/status', '/api/v1/unauthorized/', '/api/v1/forbidden']
+    public_routes = [
+        '/api/v1/status',
+        '/api/v1/unauthorized/',
+        '/api/v1/forbidden'
+    ]
 
-    if authenticator and authenticator.require_auth(request.path, public_routes):
+    requires_auth = (
+        authenticator and 
+        authenticator.require_auth(request.path, public_routes)
+    )
+
+    if requires_auth:
         if not authenticator.authorization_header(request):
             abort(401)
         if not authenticator.current_user(request):
