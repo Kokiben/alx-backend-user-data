@@ -59,7 +59,7 @@ def pre_request_handler():
     ]
 
     requires_auth = (
-        authenticator and 
+        authenticator and
         authenticator.require_auth(request.path, public_routes)
     )
 

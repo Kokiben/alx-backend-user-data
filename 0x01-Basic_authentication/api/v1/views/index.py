@@ -7,7 +7,7 @@ from api.v1.views import app_views
 
 @app_views.route('/status', strict_slashes=False)
 def fetch_status() -> str:
-    """ 
+    """
     GET /api/v1/status
     Response:
       - Returns the status of the API.
@@ -17,7 +17,7 @@ def fetch_status() -> str:
 
 @app_views.route('/stats/', strict_slashes=False)
 def fetch_statistics() -> str:
-    """ 
+    """
     GET /api/v1/stats
     Response:
       - Returns the count of each object (e.g., users).
@@ -30,7 +30,7 @@ def fetch_statistics() -> str:
 
 @app_views.route('/unauthorized', strict_slashes=False)
 def initiate_unauthorized() -> str:
-    """ 
+    """
     GET /api/v1/unauthorized
     Action:
       - Aborts the request with a 401 Unauthorized error.
@@ -40,7 +40,7 @@ def initiate_unauthorized() -> str:
 
 @app_views.route('/forbidden', strict_slashes=False)
 def initiate_forbidden() -> str:
-    """ 
+    """
     GET /api/v1/forbidden
     Action:
       - Aborts the request with a 403 Forbidden error.
