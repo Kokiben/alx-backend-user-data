@@ -22,17 +22,17 @@ class Auth:
         """
         if path is None or excluded_paths is None or len(excluded_paths) == 0:
             return True
-        
+
         # Normalize the path by removing trailing slashes
         normalized_path = path.rstrip('/')
-        
+
         # Check if the path matches any excluded path
         for excluded_path in excluded_paths:
             # Normalize the excluded path and allow wildcard matching
             normalized_excluded_path = excluded_path.rstrip('/')
             if fnmatch.fnmatch(normalized_path, normalized_excluded_path):
                 return False
-        
+
         return True
 
     def authorization_header(self, request=None) -> str:
@@ -46,9 +46,9 @@ class Auth:
     def current_user(self, request=None) -> User:
         """
         Retrieves the current user based on the request.
-        Checks for a Bearer token in the 'Authorization' header, or a 'user' cookie.
+        Checks for a Bearer token in the 'Authorization' header, or cookie.
         """
-        # First, check for an 'Authorization' header (for token-based authentication)
+        # First, check for an 'Authorization' header
         auth_header = self.authorization_header(request)
         if auth_header:
             # If a Bearer token is present, extract and return the user based
