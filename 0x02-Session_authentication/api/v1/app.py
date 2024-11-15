@@ -1,81 +1,74 @@
 #!/usr/bin/env python3
 """
-Route module for the API
+API route module with authentication and error handling.
 """
 from os import getenv
 from api.v1.views import app_views
 from api.v1.auth.auth import Auth
-from api.v1.auth.session_auth import SessionAuth
 from api.v1.auth.basic_auth import BasicAuth
 from flask import Flask, jsonify, abort, request
-from flask_cors import (CORS, cross_origin)
-# import os
+from flask_cors import CORS
+import logging
+
+# Initialize Flask application and CORS
+application = Flask(__name__)
+application.register_blueprint(app_views)
+CORS(application, resources={r"/api/v1/*": {"origins": "*"}})
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("api")
+
+# Select authentication type based on environment variable
+authentication = None
+auth_type = getenv("AUTH_TYPE")
+
+if auth_type == "auth":
+    authentication = Auth()
+elif auth_type == "basic_auth":
+    authentication = BasicAuth()
+
+log.info(f"Authentication type set to: {auth_type or 'None'}")
 
 
-app = Flask(__name__)
-app.register_blueprint(app_views)
-CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
-auth = None
-
-if getenv("AUTH_TYPE") == "auth":
-    auth = Auth()
-elif getenv("AUTH_TYPE") == "basic_auth":
-    auth = BasicAuth()
-elif getenv("AUTH_TYPE") == "session_auth":
-    auth = SessionAuth()
-elif getenv('AUTH_TYPE') == 'session_exp_auth':
-    from api.v1.auth.session_exp_auth import SessionExpAuth
-    auth = SessionExpAuth()
-elif getenv('AUTH_TYPE') == 'session_db_auth':
-    from api.v1.auth.session_db_auth import SessionDBAuth
-    auth = SessionDBAuth()
-
-
-@app.errorhandler(404)
-def not_found(error) -> str:
-    """ Not found handler
-    """
+@application.errorhandler(404)
+def handle_404(error) -> str:
+    """ Handler for 404 Not Found """
     return jsonify({"error": "Not found"}), 404
 
 
-@app.errorhandler(401)
-def unauthorized(error) -> str:
-    """
-    Unauthorized handler
-    """
+@application.errorhandler(401)
+def handle_401(error) -> str:
+    """ Handler for 401 Unauthorized """
     return jsonify({"error": "Unauthorized"}), 401
 
 
-@app.errorhandler(403)
-def forbidden(error) -> str:
-    """
-    Forbidden handler.
-    """
+@application.errorhandler(403)
+def handle_403(error) -> str:
+    """ Handler for 403 Forbidden """
     return jsonify({"error": "Forbidden"}), 403
 
 
-@app.before_request
-def before_request() -> None:
-    """ Filter for request
+@application.before_request
+def pre_request_handler():
     """
-    request_path_list = [
-        '/api/v1/status/',
-        '/api/v1/unauthorized/',
-        '/api/v1/forbidden/',
-        '/api/v1/auth_session/login/']
-    if auth:
-        if auth.require_auth(request.path, request_path_list):
-            if auth.authorization_header(
-                    request) is None and auth.session_cookie(request) is None:
-                abort(401)
-            request.current_user = auth.current_user(request)
-            if auth.current_user(request) is None:
-                abort(403)
-            if request.current_user is None:
-                abort(403)
+    Handler to run before processing each request.
+    """
+    un_pth = ['/api/v1/status', '/api/v1/unauthorized/', '/api/v1/forbidden']
+    log.info(f"Request path: {request.path}")
+
+    # Check if authentication is required for the requested path
+    if authentication and authentication.require_auth(request.path, un_pth):
+        if not authentication.authorization_header(request):
+            log.warning(f"Unauthorized access attempt on {request.path}")
+            abort(401)
+        request.current_user = authentication.current_user(request)  # Assign current user
+        if not request.current_user:
+            log.warning(f"Forbidden access attempt on {request.path}")
+            abort(403)
 
 
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
-    app.run(host=host, port=port)
+    application.run(host=host, port=port)
