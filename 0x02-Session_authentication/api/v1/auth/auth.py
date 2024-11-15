@@ -1,50 +1,66 @@
 #!/usr/bin/env python3
 """
-Manage API authentication system
+Auth class for managing API authentication.
 """
+
+import fnmatch
 from flask import request
-from typing import List, TypeVar
-from os import getenv
+from typing import TypeVar, List
+
+User = TypeVar('User')
 
 
-class Auth():
+class Auth:
     """
-    Manage API authentication methods
+    A class to manage API authentication.
     """
+
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """ Return boolean """
-        if path is None or excluded_paths is None or not len(excluded_paths):
+        """
+        Returns False if the path matches any in excluded_paths.
+        Handles trailing tolerance and wildcard matching for excluded paths.
+        """
+        if path is None or excluded_paths is None or len(excluded_paths) == 0:
             return True
 
-        if path[-1] != '/':
-            path += '/'
-        if excluded_paths[-1] != '/':
-            excluded_paths += '/'
+        # Normalize the path by removing trailing slashes
+        normalized_path = path.rstrip('/')
 
-        astericks = [stars[:-1]
-                     for stars in excluded_paths if stars[-1] == '*']
-
-        for stars in astericks:
-            if path.startswith(stars):
+        # Check if the path matches any excluded path
+        for excluded_path in excluded_paths:
+            # Normalize the excluded path and allow wildcard matching
+            normalized_excluded_path = excluded_path.rstrip('/')
+            if fnmatch.fnmatch(normalized_path, normalized_excluded_path):
                 return False
 
-        if path in excluded_paths:
-            return False
         return True
 
     def authorization_header(self, request=None) -> str:
-        """ Request Flask object """
-        if request is None or 'Authorization' not in request.headers:
-            return None
-        return request.headers.get('Authorization')
-
-    def current_user(self, request=None) -> TypeVar('User'):
-        """ Flask request object """
-        return None
-
-    def session_cookie(self, request=None):
-        """ Returns request cookie value """
+        """
+        Retrieves the 'Authorization' header from the request
+        """
         if request is None:
             return None
-        cookie = getenv('SESSION_NAME')
-        return request.cookies.get(cookie)
+        return request.headers.get("Authorization")
+
+    def current_user(self, request=None) -> User:
+        """
+        Retrieves the current user based on the request.
+        Checks for a Bearer token in the 'Authorization' header, or cookie.
+        """
+        # First, check for an 'Authorization' header
+        auth_header = self.authorization_header(request)
+        if auth_header:
+            # If a Bearer token is present, extract and return the user based
+            match = re.match(r"^Bearer (\S+)$", auth_header)
+            if match:
+                token = match.group(1)
+                # Here, you would typically validate the token and extract
+                # For now, returning a mock user based on the token
+                return f"User:{token}"  # Replace with actual
+
+        # If no Bearer token, check for the 'user' cookie
+        if request and 'user' in request.cookies:
+            return request.cookies['user']
+
+        return None
