@@ -33,7 +33,7 @@ class BasicAuth(Auth):
         else:
             return hadr_arr[1]
         # use authorization_header
-        # and extract_base64_authorization_header 
+        # and extract_base64_authorization_header
         # and decode_base64_authorization_header
         # and extract_user_credentials
 
