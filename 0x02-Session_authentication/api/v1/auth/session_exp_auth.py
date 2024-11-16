@@ -1,67 +1,57 @@
 #!/usr/bin/env python3
+"""Session authentication with expiration
+and storage support module for the API.
 """
-Session Expiration Authentication Class.
-"""
-from os import getenv
+from flask import request
 from datetime import datetime, timedelta
-from api.v1.auth.session_auth import SessionAuth
+
+from models.user_session import UserSession
+from .session_exp_auth import SessionExpAuth
 
 
-class SessionExpAuth(SessionAuth):
-    """Handles session expiration for authentication."""
+class SessionDBAuth(SessionExpAuth):
+    """Session authentication class with expiration and storage support.
+    """
 
-    def __init__(self):
-        """Initializes session duration from environment variable."""
-        try:
-            session_duration = int(getenv('SESSION_DURATION'))
-        except Exception:
-            session_duration = 0
-        self.session_duration = session_duration
-
-    def create_session(self, user_id=None):
-        """Creates a new session ID with a timestamp.
-
-        Args:
-            user_id (str): ID of the user for whom the session is created.
-
-        Returns:
-            str: Session ID, or None if session creation fails.
+    def create_session(self, user_id=None) -> str:
+        """Creates and stores a session id for the user.
         """
         session_id = super().create_session(user_id)
-        if session_id is None:
-            return None
-        # Stores the user ID with the session creation timestamp
-        session_info = {'user_id': user_id, 'created_at': datetime.now()}
-        SessionAuth.user_id_by_session_id[session_id] = session_info
-        return session_id
+        if type(session_id) == str:
+            kwargs = {
+                'user_id': user_id,
+                'session_id': session_id,
+            }
+            user_session = UserSession(**kwargs)
+            user_session.save()
+            return session_id
 
     def user_id_for_session_id(self, session_id=None):
-        """Retrieves the user ID if the session is valid and not expired.
-
-        Args:
-            session_id (str): The session ID to validate.
-
-        Returns:
-            str: User ID associated with the session if valid, otherwise None.
+        """Retrieves the user id of the user associated with
+        a given session id.
         """
-        if session_id is None:
+        try:
+            sessions = UserSession.search({'session_id': session_id})
+        except Exception:
             return None
-        if session_id not in SessionAuth.user_id_by_session_id:
+        if len(sessions) <= 0:
             return None
-        
-        session_info = SessionAuth.user_id_by_session_id[session_id]
-        
-        # If session duration is zero or less, return user_id
-        if self.session_duration <= 0:
-            return session_info["user_id"]
-        
-        # Validates expiration by checking the timestamp
-        if "created_at" not in session_info:
+        cur_time = datetime.now()
+        time_span = timedelta(seconds=self.session_duration)
+        exp_time = sessions[0].created_at + time_span
+        if exp_time < cur_time:
             return None
-        create_time = session_info["created_at"]
-        expiration_period = timedelta(seconds=self.session_duration)
-        
-        # Returns None if session has expired, else user_id
-        if (create_time + expiration_period) < datetime.now():
-            return None
-        return session_info["user_id"]
+        return sessions[0].user_id
+
+    def destroy_session(self, request=None) -> bool:
+        """Destroys an authenticated session.
+        """
+        session_id = self.session_cookie(request)
+        try:
+            sessions = UserSession.search({'session_id': session_id})
+        except Exception:
+            return False
+        if len(sessions) <= 0:
+            return False
+        sessions[0].remove()
+        return True
