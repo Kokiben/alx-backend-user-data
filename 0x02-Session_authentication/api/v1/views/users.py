@@ -96,16 +96,7 @@ def create_user() -> str:
 
 @app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
 def update_user(user_id: str = None) -> str:
-    """PUT /api/v1/users/:id
-    Path parameter:
-      - User ID.
-    JSON body:
-      - last_name (optional).
-      - first_name (optional).
-    Return:
-      - User object JSON represented.
-      - 404 if the User ID doesn't exist.
-      - 400 if can't update the User.
+    """ Update a user by their user_id.
     """
     if user_id is None:
         abort(404)
