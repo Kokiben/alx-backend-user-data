@@ -74,7 +74,7 @@ def check_request_authentication() -> None:
 
     # Apply authentication if enabled and the path is not excluded
     if auth_mech and auth_mech.require_auth(request.path, excluded_paths):
-        if auth_mech.authorization_header(request) is None and auth_mech.session_cookie(request) is None:
+        if a.authorization_header(request) is None and a.session_cookie(request) is None:
             abort(401)  # Unauthorized
         request.current_user = auth_mech.current_user(request)
         if request.current_user is None:
