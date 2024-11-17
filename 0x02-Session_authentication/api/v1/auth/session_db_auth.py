@@ -34,8 +34,8 @@ class SessionDBAuth(SessionExpAuth):
         if len(sessi) <= 0:
             return None
         cr_tm = datetime.now()
-        tm_spn = timedelta(seconds=self.session_duration)
-        ex_tm = sessi[0].created_at + tm_spn
+        tm_sp = timedelta(seconds=self.session_duration)
+        ex_tm = sessi[0].created_at + tm_sp
         if ex_tm < cr_tm:
             return None
         return sessi[0].user_id
