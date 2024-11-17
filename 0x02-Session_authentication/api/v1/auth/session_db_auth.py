@@ -20,8 +20,8 @@ class SessionDBAuth(SessionExpAuth):
                 'user_id': user_id,
                 'session_id': session_id,
             }
-            Usr_sessi = UserSession(**kwargs)
-            Usr_sessi.save()
+            usr_sessi = UserSession(**kwargs)
+            usr_sessi.save()
             return session_id
 
     def user_id_for_session_id(self, session_id=None):
