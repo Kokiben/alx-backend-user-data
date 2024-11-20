@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""A simple end-to-end (E2E) integration test for `app.py`.
+"""End-to-end integration test.
 """
 import requests
 
 BASE_URL = "http://localhost:5000"  # Adjust this URL to your app's base URL
+
 
 def register_user(email: str, password: str) -> None:
     """Tests user registration."""
@@ -56,7 +57,7 @@ def profile_logged(session_id: str) -> None:
     cookies = {'session_id': session_id}
     res = requests.get(url, cookies=cookies)
     assert res.status_code == 200
-    assert res.json() == {"email": "guillaume@holberton.io"}  # Adjust email as needed
+    assert res.json() == {"email": "guillaume@holberton.io"}
 
 
 def log_out(session_id: str) -> None:
