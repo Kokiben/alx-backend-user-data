@@ -12,7 +12,7 @@ from user import Base, User
 
 
 class DB:
-    """DB class.
+    """DB class
     """
 
     def __init__(self) -> None:
@@ -33,48 +33,48 @@ class DB:
         return self.__session
 
     def add_user(self, email: str, hashed_password: str) -> User:
-        """Adds a new user to the database.
+        """Adds a new user and commits to the database.
         """
         try:
-            new_user = User(email=email, hashed_password=hashed_password)
-            self._session.add(new_user)
+            Ad_user = User(email=email, hashed_password=hashed_password)
+            self._session.add(Ad_user)
             self._session.commit()
         except Exception:
             self._session.rollback()
-            new_user = None
-        return new_user
+            Ad_user = None
+        return Ad_user
 
     def find_user_by(self, **kwargs) -> User:
-        """Finds a user based on a set of filters.
+        """Finds a user by specified filters.
         """
-        fields, values = [], []
-        for key, value in kwargs.items():
-            if hasattr(User, key):
-                fields.append(getattr(User, key))
-                values.append(value)
+        flds, vals = [], []
+        for ke, vl in kwargs.items():
+            if hasattr(User, ke):
+                flds.append(getattr(User, ke))
+                vals.append(vl)
             else:
                 raise InvalidRequestError()
-        result = self._session.query(User).filter(
-            tuple_(*fields).in_([tuple(values)])
+        rslt = self._session.query(User).filter(
+            tuple_(*flds).in_([tuple(vals)])
         ).first()
-        if result is None:
+        if rslt is None:
             raise NoResultFound()
-        return result
+        return rslt
 
     def update_user(self, user_id: int, **kwargs) -> None:
-        """Updates a user based on a given id.
+        """Updates a user's details by user ID.
         """
         user = self.find_user_by(id=user_id)
         if user is None:
             return
-        update_source = {}
-        for key, value in kwargs.items():
-            if hasattr(User, key):
-                update_source[getattr(User, key)] = value
+        updt_sorc = {}
+        for ke, vl in kwargs.items():
+            if hasattr(User, ke):
+                updt_sorc[getattr(User, ke)] = vl
             else:
                 raise ValueError()
         self._session.query(User).filter(User.id == user_id).update(
-            update_source,
+            updt_sorc,
             synchronize_session=False,
         )
         self._session.commit()
